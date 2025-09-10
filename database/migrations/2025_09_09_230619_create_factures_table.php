@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('factures', function (Blueprint $table) {
             $table->id();
-            $table->string('client_id', 20)->nullable();
+            $table->unsignedBigInteger('client_id')->nullable();
             $table->decimal('total', 12, 2);
             $table->date('date_facture');
             $table->foreign('client_id')->references('id')->on('clients')->nullOnDelete();

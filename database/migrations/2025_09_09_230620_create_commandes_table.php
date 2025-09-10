@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('commandes', function (Blueprint $table) {
             $table->id();
-            $table->string('fournisseur_id', 20)->nullable();
+            $table->unsignedBigInteger('fournisseur_id')->nullable();
             $table->date('date_commande');
             $table->decimal('montant_total', 12, 2);
             $table->foreign('fournisseur_id')->references('id')->on('fournisseurs')->nullOnDelete();

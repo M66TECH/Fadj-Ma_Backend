@@ -8,12 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class Medicament extends Model
 {
     use HasFactory;
+
+    public $incrementing = false; 
+    protected $keyType = 'string'; 
     
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+
     protected $fillable = [
         'nom',
         'description',
@@ -21,13 +20,10 @@ class Medicament extends Model
         'prix',
         'stock',
         'groupe_id',
+        'image_path',
     ];
     
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
+
     protected $casts = [
         'prix' => 'decimal:2',
         'stock' => 'integer',
@@ -46,5 +42,24 @@ class Medicament extends Model
     public function detailsCommandes()
     {
         return $this->hasMany(DetailCommande::class, 'medicament_id');
+    }
+
+    /**
+     * Obtenir l'URL complète de l'image
+     */
+    public function getImageUrlAttribute()
+    {
+        if ($this->image_path) {
+            return asset('storage/' . $this->image_path);
+        }
+        return null;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($medicament) {
+            $medicament->id = 'D06ID' . now()->format('YmdHis') . rand(100, 999);
+        });
     }
 }

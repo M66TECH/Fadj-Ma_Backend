@@ -6,27 +6,23 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+
     public function up(): void
     {
         Schema::create('medicaments', function (Blueprint $table) {
-            $table->id();
+            $table->string('id', 20)->primary();
             $table->string('nom', 150);
             $table->text('description')->nullable();
             $table->string('dosage', 50)->nullable();
             $table->decimal('prix', 10, 2);
             $table->integer('stock')->default(0);
-            $table->string('groupe_id', 20)->nullable();
+            $table->unsignedBigInteger('groupe_id')->nullable();
             $table->foreign('groupe_id')->references('id')->on('groupes_medicaments')->nullOnDelete();
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+
     public function down(): void
     {
         Schema::dropIfExists('medicaments');
