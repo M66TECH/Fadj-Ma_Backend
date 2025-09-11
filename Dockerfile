@@ -4,13 +4,13 @@
 FROM composer:2.7 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
 
 # --- Stage 2: Node build (si assets Vite, optionnel) ---
 FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
-RUN npm ci || npm i
+RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then npm ci; else npm i --no-audit --no-fund; fi || true
 COPY resources/ resources/
 COPY vite.config.js .
 RUN npm run build || echo "Skip assets build"
@@ -31,6 +31,11 @@ RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf \
     /etc/apache2/apache2.conf \
     /etc/apache2/conf-available/*.conf
+
+# Config Apache: écouter sur $PORT (Railway fournit $PORT)
+ENV PORT=8080
+RUN sed -ri -e 's/^Listen 80$/Listen ${PORT}/' /etc/apache2/ports.conf && \
+    sed -ri -e 's/:80>/:${PORT}>/g' /etc/apache2/sites-available/000-default.conf
 
 WORKDIR /app
 
@@ -54,8 +59,7 @@ ENV APP_ENV=production \
     CACHE_DRIVER=file \
     QUEUE_CONNECTION=sync \
     SESSION_DRIVER=cookie \
-    FILESYSTEM_DISK=public \
-    PORT=8080
+    FILESYSTEM_DISK=public
 
 # Entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh

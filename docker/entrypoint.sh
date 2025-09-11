@@ -5,9 +5,11 @@ set -euo pipefail
 if [[ -n "${DB_HOST:-}" ]]; then
   echo "Attente de la base de données ${DB_HOST}:${DB_PORT:-5432}..."
   for i in {1..30}; do
-    if nc -z ${DB_HOST} ${DB_PORT:-5432}; then
-      echo "Base de données disponible."
-      break
+    if getent hosts "${DB_HOST}" >/dev/null 2>&1; then
+      if nc -z "${DB_HOST}" "${DB_PORT:-5432}"; then
+        echo "Base de données disponible."
+        break
+      fi
     fi
     sleep 1
   done
@@ -30,5 +32,11 @@ php artisan storage:link || true
 # Migrations
 php artisan migrate --force || true
 
-# Lancer Apache (image Railway heroku-php-apache)
-exec /usr/local/bin/heroku-php-apache2 public/ 
+# Lancer Apache sur le port fourni
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+export APACHE_PID_FILE=/var/run/apache2/apache2.pid
+export APACHE_LOCK_DIR=/var/lock/apache2
+export APACHE_LOG_DIR=/var/log/apache2
+
+exec apache2-foreground 
