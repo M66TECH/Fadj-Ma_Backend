@@ -4,13 +4,17 @@
 FROM composer:2.7 AS vendor
 WORKDIR /app
 COPY composer.json composer.lock ./
+
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --no-scripts
+
 
 # --- Stage 2: Node build (si assets Vite, optionnel) ---
 FROM node:20-alpine AS assets
 WORKDIR /app
 COPY package.json package-lock.json* yarn.lock* pnpm-lock.yaml* ./
+
 RUN if [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then npm ci; else npm i --no-audit --no-fund; fi || true
+
 COPY resources/ resources/
 COPY vite.config.js .
 RUN npm run build || echo "Skip assets build"
