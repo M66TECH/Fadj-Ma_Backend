@@ -20,6 +20,16 @@ if [[ -z "${APP_KEY:-}" || "${APP_KEY}" == "" ]]; then
   php artisan key:generate --force --no-interaction || true
 fi
 
+# Créer les répertoires de cache manquants
+mkdir -p /app/storage/framework/cache/data
+mkdir -p /app/storage/framework/sessions
+mkdir -p /app/storage/framework/views
+mkdir -p /app/bootstrap/cache
+
+# Permissions storage/cache
+chown -R www-data:www-data /app/storage /app/bootstrap/cache
+chmod -R 775 /app/storage /app/bootstrap/cache
+
 # Clear caches
 php artisan config:clear || true
 php artisan route:clear || true
@@ -43,4 +53,4 @@ export APACHE_PID_FILE=/var/run/apache2/apache2.pid
 export APACHE_LOCK_DIR=/var/lock/apache2
 export APACHE_LOG_DIR=/var/log/apache2
 
-exec apache2-foreground 
+exec apache2-foreground
