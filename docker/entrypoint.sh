@@ -20,11 +20,15 @@ if [[ -z "${APP_KEY:-}" || "${APP_KEY}" == "" ]]; then
   php artisan key:generate --force --no-interaction || true
 fi
 
-# Cache de config/routes/views
+# Clear caches
 php artisan config:clear || true
 php artisan route:clear || true
 php artisan view:clear || true
-php artisan optimize || true
+
+# Rebuild caches sans forcer view:cache
+php artisan config:cache || true
+php artisan route:cache || true
+# Ne pas exécuter view:cache pour éviter "View path not found" si pas de vues
 
 # Lien storage si absent
 php artisan storage:link || true

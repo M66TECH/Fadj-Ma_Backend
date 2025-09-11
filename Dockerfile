@@ -27,12 +27,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Config Apache: DocumentRoot -> /app/public
 ENV APACHE_DOCUMENT_ROOT=/app/public
+ENV APACHE_SERVER_NAME=localhost
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
     /etc/apache2/sites-available/*.conf \
     /etc/apache2/apache2.conf \
-    /etc/apache2/conf-available/*.conf
+    /etc/apache2/conf-available/*.conf && \
+    printf "<Directory /app/public>\n    AllowOverride All\n    Require all granted\n</Directory>\nServerName ${APACHE_SERVER_NAME}\n" > /etc/apache2/conf-available/laravel.conf && \
+    a2enconf laravel
 
-# Config Apache: écouter sur $PORT (Railway fournit $PORT)
+# Config Apache: écouter sur $PORT (Railway/Render fournit $PORT)
 ENV PORT=8080
 RUN sed -ri -e 's/^Listen 80$/Listen ${PORT}/' /etc/apache2/ports.conf && \
     sed -ri -e 's/:80>/:${PORT}>/g' /etc/apache2/sites-available/000-default.conf
