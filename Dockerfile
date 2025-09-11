@@ -15,22 +15,32 @@ COPY resources/ resources/
 COPY vite.config.js .
 RUN npm run build || echo "Skip assets build"
 
-# --- Stage 3: Runtime PHP 8.2 Apache ---
-FROM ghcr.io/railwayapp-templates/heroku-php-apache:8.2
+# --- Stage 3: Runtime PHP 8.2 Apache (public) ---
+FROM php:8.2-apache
 
-# Paquets système utiles
-RUN install-packages git unzip libpq-dev libzip-dev && \
-    docker-php-ext-install pdo pdo_pgsql
+# Système & extensions PHP
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git unzip libpq-dev libzip-dev netcat-traditional \
+    && docker-php-ext-install pdo pdo_pgsql zip \
+    && a2enmod rewrite headers \
+    && rm -rf /var/lib/apt/lists/*
+
+# Config Apache: DocumentRoot -> /app/public
+ENV APACHE_DOCUMENT_ROOT=/app/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+    /etc/apache2/sites-available/*.conf \
+    /etc/apache2/apache2.conf \
+    /etc/apache2/conf-available/*.conf
 
 WORKDIR /app
 
 # Copie de l'application
 COPY . /app
 
-# Copie des vendors composer depuis l'étape vendor
+# Vendors de l'étape vendor
 COPY --from=vendor /app/vendor /app/vendor
 
-# Copie des assets (si construits)
+# Assets (si construits)
 COPY --from=assets /app/public/build /app/public/build
 
 # Permissions storage/cache
@@ -44,14 +54,13 @@ ENV APP_ENV=production \
     CACHE_DRIVER=file \
     QUEUE_CONNECTION=sync \
     SESSION_DRIVER=cookie \
-    FILESYSTEM_DISK=public
+    FILESYSTEM_DISK=public \
+    PORT=8080
 
 # Entrypoint
 COPY docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Exposer le port Apache
 EXPOSE 8080
 
-# Démarrage
 CMD ["/entrypoint.sh"] 
