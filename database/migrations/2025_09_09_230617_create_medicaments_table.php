@@ -10,14 +10,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('medicaments', function (Blueprint $table) {
-            $table->string('id', 20)->primary();
+            $table->string('id', 50)->primary();
             $table->string('nom', 150);
             $table->text('description')->nullable();
             $table->string('dosage', 50)->nullable();
             $table->decimal('prix', 10, 2);
             $table->integer('stock')->default(0);
-            $table->unsignedBigInteger('groupe_id')->nullable();
+            $table->string('groupe_id', 50)->nullable();
             $table->foreign('groupe_id')->references('id')->on('groupes_medicaments')->nullOnDelete();
+            $table->string('image_path')->nullable();
             $table->timestamps();
         });
     }
