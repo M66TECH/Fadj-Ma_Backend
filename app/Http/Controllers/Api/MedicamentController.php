@@ -60,7 +60,17 @@ class MedicamentController extends Controller
             'dosage' => 'required|string|max:100',
             'prix' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'groupe_id' => 'required|exists:groupes_medicaments,id'
+            'groupe_id' => 'required|exists:groupes_medicaments,id',
+            // Champs détaillés
+            'composition' => 'nullable|string',
+            'fabricant' => 'nullable|string',
+            'type_consommation' => 'nullable|string',
+            'date_expiration' => 'nullable|date',
+            'description_detaillee' => 'nullable|string',
+            'dosage_posologie' => 'nullable|string',
+            'ingredients_actifs' => 'nullable|string',
+            'effets_secondaires' => 'nullable|string',
+            'forme_pharmaceutique' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
@@ -95,7 +105,7 @@ class MedicamentController extends Controller
     public function show(string $id)
     {
         try {
-            $medicament = Medicament::with('groupe')->find($id);
+            $medicament = Medicament::with(['groupe', 'images'])->find($id);
 
             if (!$medicament) {
                 return response()->json([
@@ -104,10 +114,13 @@ class MedicamentController extends Controller
                 ], 404);
             }
 
+            $data = $medicament->toArray();
+            $data['gallery'] = $medicament->images->map(fn($i) => asset('storage/' . $i->path));
+
             return response()->json([
                 'success' => true,
                 'message' => 'Médicament récupéré avec succès',
-                'data' => $medicament
+                'data' => $data
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
@@ -138,7 +151,17 @@ class MedicamentController extends Controller
             'dosage' => 'sometimes|string|max:100',
             'prix' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
-            'groupe_id' => 'sometimes|exists:groupes_medicaments,id'
+            'groupe_id' => 'sometimes|exists:groupes_medicaments,id',
+            // Champs détaillés
+            'composition' => 'nullable|string',
+            'fabricant' => 'nullable|string',
+            'type_consommation' => 'nullable|string',
+            'date_expiration' => 'nullable|date',
+            'description_detaillee' => 'nullable|string',
+            'dosage_posologie' => 'nullable|string',
+            'ingredients_actifs' => 'nullable|string',
+            'effets_secondaires' => 'nullable|string',
+            'forme_pharmaceutique' => 'nullable|string',
         ]);
 
         if ($validator->fails()) {
