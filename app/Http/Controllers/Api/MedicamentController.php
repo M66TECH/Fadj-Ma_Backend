@@ -151,7 +151,7 @@ class MedicamentController extends Controller
             'dosage' => 'sometimes|string|max:100',
             'prix' => 'sometimes|numeric|min:0',
             'stock' => 'sometimes|integer|min:0',
-            'groupe_id' => 'sometimes|integer|exists:groupes_medicaments,id',
+            'groupe_id' => 'sometimes|nullable|integer|exists:groupes_medicaments,id',
             // Champs détaillés
             'composition' => 'nullable|string',
             'fabricant' => 'nullable|string',
