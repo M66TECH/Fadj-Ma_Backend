@@ -16,8 +16,7 @@ return new class extends Migration
             $table->string('dosage', 50)->nullable();
             $table->decimal('prix', 10, 2);
             $table->integer('stock')->default(0);
-            $table->string('groupe_id', 50)->nullable();
-            $table->foreign('groupe_id')->references('id')->on('groupes_medicaments')->nullOnDelete();
+            $table->foreignId('groupe_id')->nullable()->constrained('groupes_medicaments')->nullOnDelete();
             $table->string('image_path')->nullable();
             $table->timestamps();
         });
