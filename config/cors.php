@@ -3,7 +3,7 @@
 return [
 
     // Appliquer CORS aux routes API et au cookie Sanctum si utilisé
-    'paths' => ['api/*', 'sanctum/csrf-cookie'],
+    'paths' => ['*'],
 
     // Autoriser toutes les méthodes HTTP
     'allowed_methods' => ['*'],
