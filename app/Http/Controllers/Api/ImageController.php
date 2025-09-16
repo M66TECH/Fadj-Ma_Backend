@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Medicament;
+use App\Models\MedicamentImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -12,7 +13,7 @@ use Illuminate\Support\Str;
 class ImageController extends Controller
 {
     /**
-     * Uploader une image pour un médicament
+     * Uploader une image pour un médicament (image principale)
      */
     public function uploadMedicamentImage(Request $request, $medicamentId)
     {
@@ -38,7 +39,7 @@ class ImageController extends Controller
                 ], 404);
             }
 
-            // Supprimer l'ancienne image si elle existe
+            // Supprimer l'ancienne image principale si elle existe (et son enregistrement éventuel)
             if ($medicament->image_path) {
                 Storage::disk('public')->delete($medicament->image_path);
             }
@@ -48,8 +49,16 @@ class ImageController extends Controller
             $filename = 'medicament_' . $medicamentId . '_' . time() . '.' . $file->getClientOriginalExtension();
             $path = $file->storeAs('medicaments', $filename, 'public');
 
-            // Mettre à jour le médicament
+            // Mettre à jour le médicament (image principale)
             $medicament->update(['image_path' => $path]);
+
+            // Enregistrer aussi dans la table des images comme primaire
+            MedicamentImage::create([
+                'medicament_id' => $medicament->id,
+                'path' => $path,
+                'is_primary' => true,
+                'ordre' => 0,
+            ]);
 
             return response()->json([
                 'success' => true,
@@ -69,7 +78,7 @@ class ImageController extends Controller
     }
 
     /**
-     * Supprimer l'image d'un médicament
+     * Supprimer l'image principale d'un médicament
      */
     public function deleteMedicamentImage($medicamentId)
     {
@@ -86,6 +95,11 @@ class ImageController extends Controller
             if ($medicament->image_path) {
                 Storage::disk('public')->delete($medicament->image_path);
                 $medicament->update(['image_path' => null]);
+
+                // Marquer d'éventuels enregistrements comme non primaires
+                MedicamentImage::where('medicament_id', $medicament->id)
+                    ->where('path', $medicament->image_path)
+                    ->update(['is_primary' => false]);
 
                 return response()->json([
                     'success' => true,
@@ -107,7 +121,7 @@ class ImageController extends Controller
     }
 
     /**
-     * Obtenir l'URL de l'image d'un médicament
+     * Obtenir l'URL de l'image principale d'un médicament
      */
     public function getMedicamentImage($medicamentId)
     {
@@ -175,9 +189,17 @@ class ImageController extends Controller
 
             $uploadedImages = [];
 
-            foreach ($request->file('images') as $file) {
+            foreach ($request->file('images') as $index => $file) {
                 $filename = 'medicament_' . $medicamentId . '_gallery_' . time() . '_' . Str::random(5) . '.' . $file->getClientOriginalExtension();
                 $path = $file->storeAs('medicaments/gallery', $filename, 'public');
+
+                // Persist
+                MedicamentImage::create([
+                    'medicament_id' => $medicament->id,
+                    'path' => $path,
+                    'is_primary' => false,
+                    'ordre' => $index,
+                ]);
                 
                 $uploadedImages[] = [
                     'image_url' => Storage::url($path),
@@ -199,5 +221,36 @@ class ImageController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Lister la galerie d'images d'un médicament
+     */
+    public function listMedicamentGallery($medicamentId)
+    {
+        $medicament = Medicament::find($medicamentId);
+        if (!$medicament) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Médicament non trouvé'
+            ], 404);
+        }
+
+        $images = MedicamentImage::where('medicament_id', $medicament->id)
+            ->orderBy('ordre')
+            ->get()
+            ->map(fn($img) => [
+                'id' => $img->id,
+                'image_url' => Storage::url($img->path),
+                'image_path' => $img->path,
+                'is_primary' => $img->is_primary,
+                'ordre' => $img->ordre,
+            ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Galerie récupérée avec succès',
+            'data' => [ 'images' => $images ]
+        ], 200);
     }
 }

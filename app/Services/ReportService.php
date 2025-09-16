@@ -129,7 +129,7 @@ class ReportService
 
         // Revenus par jour
         $revenusParJour = Facture::select(
-            DB::raw('DAY(date_facture) as jour'),
+            DB::raw('EXTRACT(DAY FROM date_facture) as jour'),
             DB::raw('SUM(total) as total')
         )
         ->whereMonth('date_facture', $mois)

@@ -76,6 +76,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('medicaments/{id}/image', [ImageController::class, 'deleteMedicamentImage']);
     Route::get('medicaments/{id}/image', [ImageController::class, 'getMedicamentImage']);
     Route::post('medicaments/{id}/gallery', [ImageController::class, 'uploadMedicamentGallery']);
+    Route::get('medicaments/{id}/gallery', [ImageController::class, 'listMedicamentGallery']);
 
     // Routes des fournisseurs
     Route::apiResource('fournisseurs', FournisseurController::class);
