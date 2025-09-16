@@ -15,9 +15,15 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
+        // Utilisateur de test
         User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+        ]);
+
+        // Groupes de médicaments par défaut
+        $this->call([
+            GroupeMedicamentSeeder::class,
         ]);
     }
 }

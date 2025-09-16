@@ -60,7 +60,7 @@ class MedicamentController extends Controller
             'dosage' => 'required|string|max:100',
             'prix' => 'required|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'groupe_id' => 'required|integer|exists:groupes_medicaments,id',
+            'groupe_id' => 'nullable|integer|exists:groupes_medicaments,id',
             // Champs détaillés
             'composition' => 'nullable|string',
             'fabricant' => 'nullable|string',
