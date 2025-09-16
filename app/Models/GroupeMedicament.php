@@ -11,12 +11,9 @@ class GroupeMedicament extends Model
     
     protected $table = 'groupes_medicaments';
     
-    protected $primaryKey = 'id';
-    protected $keyType = 'string';
-    public $incrementing = false;
-    
+    protected $primaryKey = 'id'; // integer auto-increment
+
     protected $fillable = [
-        'id',
         'nom',
         'description',
     ];
@@ -26,14 +23,5 @@ class GroupeMedicament extends Model
         return $this->hasMany(Medicament::class, 'groupe_id');
     }
     
-    protected static function boot()
-    {
-        parent::boot();
-        
-        static::creating(function ($groupe) {
-            if (empty($groupe->id)) {
-                $groupe->id = 'GRP' . now()->format('YmdHis') . rand(100, 999);
-            }
-        });
-    }
+    
 }

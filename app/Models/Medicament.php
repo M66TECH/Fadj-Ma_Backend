@@ -37,6 +37,7 @@ class Medicament extends Model
     protected $casts = [
         'prix' => 'decimal:2',
         'stock' => 'integer',
+        'groupe_id' => 'integer',
         'date_expiration' => 'date',
     ];
 
