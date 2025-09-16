@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Activer CORS pour autoriser le frontend Vercel
+        $middleware->use(\Illuminate\Http\Middleware\HandleCors::class);
+
         // Enregistrer les middlewares personnalisés
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
